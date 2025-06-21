@@ -242,8 +242,7 @@ def extract_text_from_pdf(pdf_file):
         text += page.extract_text()
     return text
 
-
-def chunk_text(text, chunk_size=500, chunk_overlap=50):
+def chunk_text(text, chunk_size=300, chunk_overlap=30):
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=chunk_size,
         chunk_overlap=chunk_overlap,
@@ -253,15 +252,23 @@ def chunk_text(text, chunk_size=500, chunk_overlap=50):
     return chunks
 
 # --- Gemini Response Function ---
-def generate_response(context, question, temperature=1):
+def generate_response(context, question, temperature=0.3):
     prompt = f"""
-    You are a helpful assistant that is used to answer questions based on the documents from the database and provided context
-    The tone should be more conversational, personal and sound more human like. Avoid mentioning the words According to the documentation provided. Also provide responses to
-    general troubleshooting of IT Issues. Always look at previous user question to understand
-    the context so you can easily answer follow up questions. If question asked is not clear, you can ask for 
-    more information from the user and base your response on the context of their response and their previous 
-    questions and responses you gave. For issues not sure of how to respond, you can advise the users to 
-    contact IT via 0746752351 or sending an email at ithelpdesk@pendahealth.com 
+    You are a helpful assistant that is used to answer questions based on the documents from the database and provided context and
+    also general IT queries and other topics not found in the documents. Your tone should be more conversational, personal and sound more human like. 
+    Your Responses should be structured and in step-by-step format to help clarify why the response you gave is the most 
+    appropriate one. The response should also be simple, rich in details, easy to understand and provide examples if necessary.
+    Avoid using words such as According to the documentation or documents provided when responding to users. Do not infer to them that you 
+    have been provided information to respond with so also avoid saying things like according to the information I have
+    Always look at previous user questions to understand the context so you can easily answer follow up questions. 
+    If a query is ambiguous, ask a clarifying question and base your response on the context  
+    of their response and their previous questions and the responses you gave.
+    If the provided context contains conflicting information, prioritize information from the document most relevant to the user's current query focus 
+    (e.g., if the user asks about disciplinary matters, focus on disciplinary documents) Avoid mixing information from different topics if the context seems to contain multiple subjects, focus only on what's directly relevant to the user's question
+    Emphasize Source Attribution (if needed): When answering, indicate which document or section the information came from.
+    Based on the current conversation history you can come up with the most relevant follow up questions a user might need assistance on only. The questions can be one or two but at most 3 and have few wordings. Format them in italics
+    For IT issues not sure of how to respond, advise the users to contact IT via 0746752351 or sending an email at ithelpdesk@pendahealth.com
+    For Policy related issues where you are not sure of how to respond, advise the users to contact HR via hr@pendahealth.com
 
     Context:
     {context}
@@ -269,10 +276,11 @@ def generate_response(context, question, temperature=1):
     Question: {question}
     Answer:
     """
+
     generation_config = genai.GenerationConfig(
         temperature=temperature,
         top_p=1.0,
-        top_k=32,
+        top_k=3,
         max_output_tokens=4096,
     )
 
